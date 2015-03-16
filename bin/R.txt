@@ -484,8 +484,7 @@ int string title_activity_eq 0x7f0a0017
 int string title_activity_eq_adapter 0x7f0a0016
 int string title_activity_main 0x7f0a0015
 int string title_activity_param 0x7f0a0018
-int style AppBaseTheme 0x7f0b00eb
-int style AppTheme 0x7f0b00ec
+int style AppTheme 0x7f0b00eb
 int style Base_TextAppearance_AppCompat 0x7f0b0098
 int style Base_TextAppearance_AppCompat_Body1 0x7f0b00a3
 int style Base_TextAppearance_AppCompat_Body2 0x7f0b00a2

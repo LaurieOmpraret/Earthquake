@@ -1,8 +1,5 @@
 package com.example.earthquake;
 
-import android.graphics.drawable.Drawable;
-import android.view.View;
-import android.widget.ImageView;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;

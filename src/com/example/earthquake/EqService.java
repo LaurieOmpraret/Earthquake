@@ -6,7 +6,6 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Binder;
 import android.os.IBinder;
-
 import android.widget.Toast;
 
 import com.android.volley.Request;
@@ -35,16 +34,14 @@ public class EqService extends Service {
         }
     }
 
-    public void onCreat() {
+    public void onCreate() {
         super.onCreate();
         CheckNotifyEq();
     }
 
 
     public void CheckNotifyEq() {
-// Instantiate the RequestQueue.
         RequestQueue queue = Volley.newRequestQueue(this);
-// Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlLastHour,
                 new Response.Listener() {
                     @Override
@@ -71,21 +68,10 @@ public class EqService extends Service {
     }
 
     private void notifyEq() {
-        int nbSeisme = geoJson.getCount();
-        if (nbSeisme > 0) {
-            //Toast.makeText(getApplicationContext(), nbSeisme + "New earthquakes in last hour.",
-              //      Toast.LENGTH_LONG).show();
-
-            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-            builder.setMessage(nbSeisme + "New earthquakes in last hour.");
-            AlertDialog dialog = builder.create();
-
-            builder.setNegativeButton("fermer", new DialogInterface.OnClickListener(){
-                public void onClick(DialogInterface dialog, int id){
-                    dialog.cancel();
-                }
-            });
-            dialog.show();
+    	int seismeCount = geoJson.getCount();
+        if (seismeCount > 0) {
+            Toast.makeText(getApplicationContext(), "New earthquakes in the last hour.",
+                    Toast.LENGTH_LONG).show();
         }
 
 

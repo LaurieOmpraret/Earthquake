@@ -1,5 +1,6 @@
 package com.example.earthquake;
 
+import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -22,7 +23,6 @@ import com.android.volley.VolleyError;
 import com.android.volley.toolbox.StringRequest;
 import com.android.volley.toolbox.Volley;
 import com.google.gson.Gson;
-
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -77,7 +77,7 @@ public class MainActivity extends ActionBarActivity {
     private void getLastMonthEqList(){
         RequestQueue queue = Volley.newRequestQueue(this);
         final TextView errorDisplay = (TextView) findViewById(R.id.errorDisplay);
-        errorDisplay.setText("Please wait...");
+        errorDisplay.setText("Please wait.");
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlLastMonth,
                 new Response.Listener() {
                     @Override
@@ -98,32 +98,24 @@ public class MainActivity extends ActionBarActivity {
                 errorDisplay.setText("An error occured while trying to get the list of earthquakes. Please retry later.");
             }
         });
-        // Add the request to the RequestQueue.
         queue.add(stringRequest);
     }
 
-    private void filterMagnitude() {
-        seismesDisplay = new ArrayList();
-
-        for (GeoJson.Seisme seisme: seismes) {
-            if (seisme.getMag() > minimumMagnitudeForEarthquake) {
-                seismesDisplay.add(seisme);
-            }
-        }
-    }
 
     private void startEqService() {
-        if (eqService == null) {
+        /*if (eqService == null) {
             Intent seismeServiceIntent = new Intent(MainActivity.this, EqService.class);
             bindService(seismeServiceIntent, mConnection, BIND_AUTO_CREATE);
-        }
+        }*/
+    	Intent seismeServiceIntent = new Intent(MainActivity.this, EqService.class);
+        startService(seismeServiceIntent);
 
     }
 
     @Override
     protected void onResume() {
         super.onResume();
-        //eqService.CheckNotifySeisme();
+        //eqService.CheckNotifyEq();
 
     }
 
@@ -131,16 +123,12 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
@@ -184,6 +172,17 @@ public class MainActivity extends ActionBarActivity {
         }
     }
 
+    private void filterMagnitude() {
+        seismesDisplay = new ArrayList();
+
+        for (GeoJson.Seisme seisme: seismes) {
+            if (seisme.getMag() > minimumMagnitudeForEarthquake) {
+                seismesDisplay.add(seisme);
+            }
+        }
+    }
+    
+    
     private void filterTime(long currentTimestamp, float duration) {
         if (seismes == null) {
             return;
