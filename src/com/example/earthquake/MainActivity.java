@@ -1,161 +1,139 @@
 package com.example.earthquake;
 
-import java.io.IOException;
-
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.http.HttpEntity;
-import org.apache.http.HttpResponse;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
-import org.apache.http.util.EntityUtils;
-import org.json.JSONObject;
-
-import android.annotation.SuppressLint;
-import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.ProgressDialog;
+import android.content.ComponentName;
 import android.content.Intent;
-import android.os.AsyncTask;
-import android.os.Build;
+import android.content.ServiceConnection;
+import android.content.SharedPreferences;
+import android.os.IBinder;
+import android.preference.PreferenceManager;
+import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
-import android.os.StrictMode;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ListView;
 import android.widget.TextView;
-import android.widget.Toast;
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.StringRequest;
+import com.android.volley.toolbox.Volley;
+import com.google.gson.Gson;
+
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 
 
-public class MainActivity extends Activity {
-	static final String TAG="earthquake";
+public class MainActivity extends ActionBarActivity {
 
-	@Override
-	protected void onCreate(Bundle savedInstanceState) 
-		{ super.onCreate(savedInstanceState); 
-		setContentView(R.layout.activity_main);
-		
-		Button btn1 = (Button)findViewById(R.id.button1); 
-		btn1.setOnClickListener(new OnClickListener() {
-	
-			@Override //on passe des infos
-			public void onClick(View v) {
-				Intent monIntent = new Intent(MainActivity.this,MainActivity.class); 
-				monIntent.putExtra("Value1", "Salut ! "); 
-				monIntent.putExtra("Value2", "C'est l'activité 2 !"); 
-				startActivity(monIntent);
-			} 	
-		});
-		/*Button btn2 = (Button)findViewById(R.id.button2); 
-		btn2.setOnClickListener(new OnClickListener() {
-			@Override //on passe pas d'infos
-			public void onClick(View v) {
-				Intent monIntent = new Intent(MainActivity.this,Volley.class); 
-				startActivity(monIntent);
-			}
-		});*/
-		Button btn3 = (Button)findViewById(R.id.button3); 
-		btn3.setOnClickListener(new OnClickListener() {
-			@Override // on load le json en cliquant
-			public void onClick(View v) {
-				loadJson();
-			}
-		});
-		
-		Button button4 = (Button) findViewById(R.id.button4); 
-		button4.setOnClickListener(new View.OnClickListener() {
-			public void onClick(View v) {
-				List<NameValuePair> params = new ArrayList<NameValuePair>(); 
-				new WebServiceRequestor("http://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php",params).execute(); 
-				}
-		}); 
-	
-		}
+    private static EqService eqService;
+    private static final int REQ_CODE = 999;
 
-	public void loadJson() {
-		if (android.os.Build.VERSION.SDK_INT > 9) {
-			StrictMode.ThreadPolicy policy = new StrictMode.ThreadPolicy.Builder().permitAll().build(); 
-			StrictMode.setThreadPolicy(policy);
-			}
-		HttpClient httpclient = new DefaultHttpClient();
-		HttpGet httpget = new HttpGet("http://earthquake.usgs.gov/earthquakes/feed/v1.0/geojson.php"); try {
-		HttpResponse response = httpclient.execute(httpget); if(response != null) {
-		String line = "";
-		HttpEntity httpEntity = response.getEntity(); line = EntityUtils.toString(httpEntity);
-		Log.i(TAG, "lines " + line);
-		JSONObject theObject = new JSONObject(line);
-		Toast.makeText(this,line.substring(0,500), Toast.LENGTH_LONG).show();
-		
-		} else {
-		Toast.makeText(this, "Unable to complete your request", Toast.LENGTH_LONG).show();
-		}
-		} catch (ClientProtocolException e) {
-		Toast.makeText(this, "Caught ClientProtocolException", Toast.LENGTH_SHORT).show();
-		Log.e("test",e.toString()); } catch (IOException e) {
-		Toast.makeText(this, "Caught IOException", Toast.LENGTH_SHORT).show();
-		Log.e("test",e.toString()); } catch (Exception e) {
-		Toast.makeText(this, "Caught Exception", Toast.LENGTH_SHORT).show();
-		Log.e("test",e.toString()); }
-		
-	}
+    private static final String urlLastMonth = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
+    private GeoJson geoJson;
+    private List<GeoJson.Seisme> seismes;
+    private List<GeoJson.Seisme> seismesDisplay;
+    private float minimumMagnitudeForEarthquake;
+
+
+    ServiceConnection mConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            EqService.LocalBinder mLocalBinder = (EqService.LocalBinder) service;
+            eqService = mLocalBinder.getInstance();
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            eqService = null;
+        }
+    };
+
+    private static EqService getEqService() {
+        return eqService;
+    }
+
 
     @Override
-	protected void onStart() {
-		// TODO Auto-generated method stub
-		super.onStart();
-        Log.d("TAG",  "onStart");
-	}
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
-	@Override
-	protected void onRestart() {
-		// TODO Auto-generated method stub
-		super.onRestart();
-        Log.d("TAG",  "onRestart");
-	}
+        loadPreference();
 
-	@Override
-	protected void onResume() {
-		// TODO Auto-generated method stub
-		super.onResume();
-        Log.d("TAG",  "onResume");
-	}
+        startEqService();
+        getLastMonthEqList();
+    }
 
-	@Override
-	protected void onPause() {
-		// TODO Auto-generated method stub
-		super.onPause();
-        Log.d("TAG",  "onPause");
-	}
+    private void loadPreference() {
+        SharedPreferences preferences = PreferenceManager.getDefaultSharedPreferences(getApplicationContext());
+        minimumMagnitudeForEarthquake = preferences.getFloat("M", (float)-5);
+    }
 
-	@Override
-	protected void onStop() {
-		// TODO Auto-generated method stub
-		super.onStop();
-        Log.d("TAG",  "onStop");
-	}
+    private void getLastMonthEqList(){
+        RequestQueue queue = Volley.newRequestQueue(this);
+        final TextView errorDisplay = (TextView) findViewById(R.id.errorDisplay);
+        errorDisplay.setText("Please wait...");
+        StringRequest stringRequest = new StringRequest(Request.Method.GET, urlLastMonth,
+                new Response.Listener() {
+                    @Override
+                    public void onResponse(Object o) {
+                        Gson gson = new Gson();
+                        geoJson = gson.fromJson((String)o, GeoJson.class);
+                        seismes = geoJson.getFeatures();
+                        seismesDisplay = seismes;
+                        filterMagnitude();
+                        errorDisplay.setText("");
+                        Log.d("main", "done");
+                        displaySeismes();
+                    }
+                }, new Response.ErrorListener() {
+            @Override
+            public void onErrorResponse(VolleyError error) {
+                Log.d("main", "error");
+                errorDisplay.setText("An error occured while trying to get the list of earthquakes. Please retry later.");
+            }
+        });
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);
+    }
 
-	@Override
-	protected void onDestroy() {
-		// TODO Auto-generated method stub
-		super.onDestroy();
-        Log.d("TAG",  "onDestroy");
-	}
+    private void filterMagnitude() {
+        seismesDisplay = new ArrayList();
 
-	@Override
+        for (GeoJson.Seisme seisme: seismes) {
+            if (seisme.getMag() > minimumMagnitudeForEarthquake) {
+                seismesDisplay.add(seisme);
+            }
+        }
+    }
+
+    private void startEqService() {
+        if (eqService == null) {
+            Intent seismeServiceIntent = new Intent(MainActivity.this, EqService.class);
+            bindService(seismeServiceIntent, mConnection, BIND_AUTO_CREATE);
+        }
+
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //eqService.CheckNotifySeisme();
+
+    }
+
+
+
+    @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
-        
     }
 
     @Override
@@ -163,68 +141,94 @@ public class MainActivity extends Activity {
         // Handle action bar item clicks here. The action bar will
         // automatically handle clicks on the Home/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
-        if (id == R.id.action_settings) {
-            return true;
+        long currentTimestamp = new Date().getTime();
+        float duration;
+
+        switch (id) {
+            case R.id.action_settings:
+                Intent intent = new Intent(MainActivity.this, ParamActivity.class);
+                startActivityForResult(intent, REQ_CODE);
+                return true;
+            case R.id.past_hour:
+                duration = 1L*60L*60L*1000L;
+                filterTime(currentTimestamp, duration);
+                return true;
+            case R.id.past_day:
+                duration = 24L*60L*60L*1000L;
+                filterTime(currentTimestamp, duration);
+                return true;
+            case R.id.past_7_days:
+                duration = 7L*24L*60L*60L*1000L;
+                filterTime(currentTimestamp, duration);
+                return true;
+            case R.id.past_30_days:
+                duration = 30L*24L*60L*60L*1000L;
+                filterTime(currentTimestamp, duration);
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
         }
-        return super.onOptionsItemSelected(item);
     }
 
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (resultCode == RESULT_OK && requestCode == REQ_CODE) {
+            if (data.hasExtra("settings") && data.getBooleanExtra("settings", true)) {
+                loadPreference();
+                filterMagnitude();
+            }
+        }
+    }
 
-private class WebServiceRequestor extends AsyncTask<String, Void, String> {
-	private ProgressDialog pDialog; 
-	String URL;
-	List<NameValuePair> parameters;
-	public WebServiceRequestor(String url, List<NameValuePair> params) {
-		this.URL = url;
-		this.parameters = params; 
-	}
-	
-	@Override
-	protected String doInBackground(String... params) {
-		try {
-			DefaultHttpClient httpClient = new DefaultHttpClient(); 
-			HttpEntity httpEntity = null;
-			HttpResponse httpResponse = null;
-			HttpPost httpPost = new HttpPost(URL);
-			if (parameters != null) {
-				httpPost.setEntity(new UrlEncodedFormEntity(parameters)); 
-				}
-			httpResponse = httpClient.execute(httpPost);
-			httpEntity = httpResponse.getEntity(); 
-			return EntityUtils.toString(httpEntity);
-		} catch (Exception e) {
-		}
-		return ""; 
-	}
-	@Override
-	protected void onPostExecute(String result) {
-		pDialog.dismiss();
-		TextView txt = (TextView) findViewById(R.id.output);
-		//txt.setText("Response is: "+ result.substring(0,500)); 
-		// txt.setText(result);
-		try {
-			JSONObject theObject = new JSONObject(result); 
-			txt.setText("Response is: "+theObject.getString("status")+"\n"+theObject.getString("count")+"/"+theObject.getString("count_total")); 
-		} catch (Exception e){
-			txt.setText("Error during process"); // txt.setText(result); 
-			}
-			super.onPostExecute(result); 
-		}
-		@Override
-		protected void onPreExecute() {
-			pDialog = new ProgressDialog(MainActivity.this); 
-			pDialog.setMessage("Processing Request..."); 
-			pDialog.setIndeterminate(false); 
-			pDialog.setCancelable(false);
-			pDialog.show();
-			super.onPreExecute(); 
-		}
-		@Override
-		protected void onProgressUpdate(Void... values) { }
-		}
+    private void filterTime(long currentTimestamp, float duration) {
+        if (seismes == null) {
+            return;
+        }
 
+        seismesDisplay = new ArrayList();
+
+        for(GeoJson.Seisme seisme: seismes) {
+            if (currentTimestamp - seisme.getTime() <= duration
+                    && seisme.getMag() > minimumMagnitudeForEarthquake) {
+                seismesDisplay.add(seisme);
+            } else {
+                break;
+            }
+        }
+        displaySeismes();
+        Log.d("filterEarthquakesByTime", Integer.toString(seismesDisplay.size()) + "/"
+                + Integer.toString(seismesDisplay.size()));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        eqService = null;
+        getApplicationContext().unbindService(mConnection);
+    }
+
+    private void displaySeismes(){
+        ListView myListView = (ListView) findViewById(R.id.eqList);
+        EqAdapter adapter = new EqAdapter(this, seismesDisplay);
+        myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(MainActivity.this, EqActivity.class);
+                GeoJson.Seisme seisme = seismesDisplay.get(position);
+                intent.putExtra("title", seisme.getTitle());
+                intent.putExtra("time", seisme.getStandardTime());
+                intent.putExtra("mag", "mag :" + seisme.getMagString());
+                intent.putExtra("place", seisme.getProperties().getPlace());
+                intent.putExtra("detail", seisme.getProperties().getDetail());
+                startActivity(intent);
+            }
+        });
+        myListView.setAdapter(adapter);
+        adapter.notifyDataSetChanged();
+    }
 }
-
-
 
