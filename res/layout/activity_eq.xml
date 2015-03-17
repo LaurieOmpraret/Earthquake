@@ -49,4 +49,14 @@
         android:layout_below="@+id/eqActivityPalce"
         android:layout_alignRight="@+id/eqActivityTitle"
         android:layout_alignEnd="@+id/eqActivityTitle" />
+
+    <Button
+        android:id="@+id/button1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="143dp"
+        android:text="Back" />
+
 </RelativeLayout>

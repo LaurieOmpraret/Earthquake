@@ -6,6 +6,8 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.RadioButton;
 
 
@@ -72,10 +74,20 @@ public class ParamActivity extends ActionBarActivity implements View.OnClickList
 
         editor.commit();
 
-        Intent data = new Intent();
+        Button btn1 = (Button)findViewById(R.id.button1); 
+		btn1.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent monIntent = new Intent(ParamActivity.this,MainActivity.class); 
+				startActivity(monIntent);
+			}
+		});
+        
+    /*    Intent data = new Intent();
+        
         data.putExtra("settings", true);
         setResult(RESULT_OK, data);
-        finish();
+        finish();*/
     }
 
     private void checkGoodButton() {
@@ -92,4 +104,5 @@ public class ParamActivity extends ActionBarActivity implements View.OnClickList
             maEarthquakes.setChecked(true);
         }
     }
+    
 }

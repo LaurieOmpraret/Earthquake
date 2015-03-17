@@ -41,24 +41,24 @@ public class EqService extends Service {
 
 
     public void CheckNotifyEq() {
-        RequestQueue queue = Volley.newRequestQueue(this);
+    	RequestQueue queue = Volley.newRequestQueue(this);
+        // Request a string response from the provided URL.
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlLastHour,
                 new Response.Listener() {
                     @Override
-                    public void onResponse(Object objet) {
-                        getLastEq(objet);
+                    public void onResponse(Object o) {
+                        getLastEq(o);
                     }
                 }, new Response.ErrorListener() {
             @Override
             public void onErrorResponse(VolleyError error) {
                 Toast.makeText(getApplicationContext(),
                         "An error occured while trying to get the list of earthquakes.",
-                        Toast.LENGTH_LONG).show();
+                        Toast.LENGTH_LONG);
             }
         });
-// Add the request to the RequestQueue.
-        queue.add(stringRequest);
-    }
+        // Add the request to the RequestQueue.
+        queue.add(stringRequest);    }
 
     private void getLastEq(Object objet) {
         Gson gson = new Gson();
@@ -70,7 +70,7 @@ public class EqService extends Service {
     private void notifyEq() {
     	int seismeCount = geoJson.getCount();
         if (seismeCount > 0) {
-            Toast.makeText(getApplicationContext(), "New earthquakes in the last hour.",
+            Toast.makeText(getApplicationContext(), "Last hour : New Earthquakes !",
                     Toast.LENGTH_LONG).show();
         }
 

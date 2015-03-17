@@ -1,9 +1,13 @@
 package com.example.earthquake;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.View.OnClickListener;
+import android.widget.Button;
 import android.widget.TextView;
 
 
@@ -30,6 +34,15 @@ public class EqActivity extends ActionBarActivity {
 
         TextView detail = (TextView) findViewById(R.id.eqActivityDetail);
         detail.setText(extras.getString("detail"));
+        
+        Button btn1 = (Button)findViewById(R.id.button1); 
+		btn1.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent monIntent = new Intent(EqActivity.this,MainActivity.class); 
+				startActivity(monIntent);
+			}
+		});
 
     }
 

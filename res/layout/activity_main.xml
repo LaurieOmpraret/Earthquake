@@ -1,33 +1,30 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" android:layout_width="match_parent"
-    android:layout_height="match_parent" android:paddingLeft="@dimen/activity_horizontal_margin"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
-    android:paddingBottom="@dimen/activity_vertical_margin"
-    tools:context="com.example.earthquake.MainActivity">
+    tools:context="com.example.earthquake.MainActivity" >
 
     <TextView
+        android:id="@+id/errorDisplay"
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:id="@+id/errorDisplay" />
+        android:layout_height="wrap_content" />
 
     <ListView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:id="@+id/eqList"
-        android:layout_centerHorizontal="true"
-        android:layout_alignTop="@+id/errorDisplay" />
+        android:layout_width="wrap_content"
+        android:layout_height="432dp" >
+    </ListView>
 
     <Button
+        android:id="@+id/retryButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Retry"
-        android:id="@+id/retryButton"
         android:layout_marginTop="105dp"
-        android:visibility="invisible"
-        android:layout_below="@+id/errorDisplay"
-        android:layout_centerHorizontal="true" />
-
-
+        android:text="Retry"
+        android:visibility="invisible" />
 
 </RelativeLayout>

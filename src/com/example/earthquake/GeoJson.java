@@ -46,9 +46,9 @@ public class GeoJson {
 
         public int getMagImg() {
             double mag = properties.getMag();
-            if  (mag <= 4) {
+            if  (mag <= 2.5) {
                 return R.drawable.circle_green;
-            } else if (mag <= 7) {
+            } else if (mag <= 4.5) {
                 return R.drawable.circle_orange;
             } else {
                 return R.drawable.circle_red;
@@ -160,14 +160,10 @@ public class GeoJson {
                 return type;
             }
         }
-        public class Geometry {
-            private String type;
-            private List<Double> coordinates;
-        }
         private String id;
         private String type;
         private Properties properties;
-        private Geometry geometry;
+
         public String getId() {
             return id;
         }
@@ -176,9 +172,6 @@ public class GeoJson {
         }
         public Properties getProperties() {
             return properties;
-        }
-        public Geometry getGeometry() {
-            return geometry;
         }
         public Long getTime() {
             return properties.getTime();

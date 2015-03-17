@@ -1,6 +1,5 @@
 package com.example.earthquake;
 
-import android.app.Activity;
 import android.content.ComponentName;
 import android.content.Intent;
 import android.content.ServiceConnection;
@@ -32,12 +31,13 @@ public class MainActivity extends ActionBarActivity {
 
     private static EqService eqService;
     private static final int REQ_CODE = 999;
-
     private static final String urlLastMonth = "http://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.geojson";
     private GeoJson geoJson;
     private List<GeoJson.Seisme> seismes;
     private List<GeoJson.Seisme> seismesDisplay;
     private float minimumMagnitudeForEarthquake;
+    private long currentTimestamp;
+    private long duration;
 
 
     ServiceConnection mConnection = new ServiceConnection() {
@@ -63,8 +63,10 @@ public class MainActivity extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+        currentTimestamp = new Date().getTime();
+        duration = 30L * 24L * 60L * 60L * 1000L;
+        
         loadPreference();
-
         startEqService();
         getLastMonthEqList();
     }
@@ -77,7 +79,7 @@ public class MainActivity extends ActionBarActivity {
     private void getLastMonthEqList(){
         RequestQueue queue = Volley.newRequestQueue(this);
         final TextView errorDisplay = (TextView) findViewById(R.id.errorDisplay);
-        errorDisplay.setText("Please wait.");
+        errorDisplay.setText("...Please wait...");
         StringRequest stringRequest = new StringRequest(Request.Method.GET, urlLastMonth,
                 new Response.Listener() {
                     @Override
@@ -120,7 +122,6 @@ public class MainActivity extends ActionBarActivity {
     }
 
 
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         getMenuInflater().inflate(R.menu.main, menu);
@@ -129,12 +130,8 @@ public class MainActivity extends ActionBarActivity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
+
         int id = item.getItemId();
-        long currentTimestamp = new Date().getTime();
-        float duration;
 
         switch (id) {
             case R.id.action_settings:
@@ -143,19 +140,19 @@ public class MainActivity extends ActionBarActivity {
                 return true;
             case R.id.past_hour:
                 duration = 1L*60L*60L*1000L;
-                filterTime(currentTimestamp, duration);
+                filterTime();
                 return true;
             case R.id.past_day:
                 duration = 24L*60L*60L*1000L;
-                filterTime(currentTimestamp, duration);
+                filterTime();
                 return true;
             case R.id.past_7_days:
                 duration = 7L*24L*60L*60L*1000L;
-                filterTime(currentTimestamp, duration);
+                filterTime();
                 return true;
             case R.id.past_30_days:
                 duration = 30L*24L*60L*60L*1000L;
-                filterTime(currentTimestamp, duration);
+                filterTime();
                 return true;
             default:
                 return super.onOptionsItemSelected(item);
@@ -173,7 +170,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     private void filterMagnitude() {
-        seismesDisplay = new ArrayList();
+
+        seismesDisplay = new ArrayList<GeoJson.Seisme>();
 
         for (GeoJson.Seisme seisme: seismes) {
             if (seisme.getMag() > minimumMagnitudeForEarthquake) {
@@ -183,12 +181,12 @@ public class MainActivity extends ActionBarActivity {
     }
     
     
-    private void filterTime(long currentTimestamp, float duration) {
+    private void filterTime() {
         if (seismes == null) {
             return;
         }
 
-        seismesDisplay = new ArrayList();
+        seismesDisplay = new ArrayList<GeoJson.Seisme>();
 
         for(GeoJson.Seisme seisme: seismes) {
             if (currentTimestamp - seisme.getTime() <= duration
